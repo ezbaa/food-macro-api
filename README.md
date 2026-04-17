@@ -1,4 +1,4 @@
-# 🍽️ Food Image Analyzer API
+# 🍽️ Food Macro Vision API
 
 A REST API that analyzes food images and returns nutritional estimates using Groq's vision-enabled LLM (Llama 4 Scout). Upload a photo of any meal and get back macro breakdown, ingredient list, and dish classification.
 
