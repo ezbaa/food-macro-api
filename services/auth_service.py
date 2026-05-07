@@ -36,6 +36,7 @@ async def exchange_code_for_token(code: str):
                 "client_id": GITHUB_CLIENT_ID,
                 "client_secret": GITHUB_CLIENT_SECRET,
                 "code": code,
+                "redirect_uri": "http://localhost:8080/callback",
             },
             headers={"Accept": "application/json"},
         )
@@ -55,6 +56,8 @@ async def get_github_user(token: str):
 async def verify_token(token: str):
     user = await get_github_user(token)
     username = user.get("login")
+    if not username:
+        raise Exception("Invalid token")
     if username not in ALLOWED_USERS:
         raise Exception(f"User {username} not allowed")
     return user

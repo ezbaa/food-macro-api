@@ -1,6 +1,6 @@
-from fastapi import FastAPI, UploadFile, File, HTTPException, Depends
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi import FastAPI, UploadFile, File, HTTPException, Cookie, Response
 from fastapi.responses import RedirectResponse
+from fastapi.middleware.cors import CORSMiddleware
 import base64
 from services.vision_service import analyze_image
 from services.auth_service import (
@@ -12,17 +12,25 @@ from services.auth_service import (
 
 app = FastAPI()
 
-security = HTTPBearer()
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 @app.post("/analyze-image")
 async def analyze_image_endpoint(
-    file: UploadFile = File(...),
-    credentials: HTTPAuthorizationCredentials = Depends(security),
+    file: UploadFile = File(...), access_token: str = Cookie(None)
 ):
 
+    if not access_token:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+
     try:
-        await verify_token(credentials.credentials)
+        await verify_token(access_token)
     except Exception as e:
         raise HTTPException(status_code=401, detail=str(e))
 
@@ -50,10 +58,35 @@ async def github_callback(code: str, state: str):
     if not token:
         raise HTTPException(status_code=400, detail="Failed to get token")
 
-    return {"access_token": token}
+    redirect = RedirectResponse(url="http://localhost:5173/analyze")
+    redirect.set_cookie(
+        key="access_token",
+        value=token,
+        httponly=True,
+        samesite="strict",
+    )
+
+    return redirect
 
 
 @app.get("/login")
 async def login():
     url = get_github_login_url()
     return RedirectResponse(url, status_code=302)
+
+
+@app.get("/me")
+async def me(access_token: str = Cookie(None)):
+    if not access_token:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    try:
+        user = await verify_token(access_token)
+        return {"username": user.get("login")}
+    except Exception as e:
+        raise HTTPException(status_code=401, detail=str(e))
+
+
+@app.post("/logout")
+async def logout(response: Response):
+    response.delete_cookie("access_token")
+    return {"success": True}
