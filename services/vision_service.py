@@ -69,12 +69,12 @@ def analyze_image(encoded_image: str):
             JSON FORMAT:
             {
             "title": "name of the dish",
-            "dish_type": "restaurant | home | unknown",
+            "dish_type": "restaurant | homemade | unknown",
             "confidence": 0.0-1.0,
             "summary": "short description of the meal",
             "ingredients": ["ingredient1", "ingredient2", "ingredient3"],
             "estimated_macros": {
-                "calories": number,
+                "calories": number,ß
                 "fat_g": number,
                 "carbs_g": number,
                 "sugar_g": number,
