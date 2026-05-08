@@ -20,3 +20,5 @@ __pycache__/
 *.log
 
 node_modules
+
+frontend/.env.production

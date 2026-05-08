@@ -20,7 +20,7 @@
 
 <script setup>
 function login() {
-  window.location.href = "http://localhost:8080/login";
+  window.location.href = `${import.meta.env.VITE_API_URL}/login`;
 }
 </script>
 
