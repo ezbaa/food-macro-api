@@ -129,7 +129,7 @@ const error = ref(null);
 
 onMounted(async () => {
   try {
-    const response = await fetch("http://localhost:8080/me", {
+    const response = await fetch(`${import.meta.env.VITE_API_URL}/me`, {
       credentials: "include",
     });
     if (!response.ok) {
@@ -161,7 +161,7 @@ async function analyzeImage() {
     const formData = new FormData();
     formData.append("file", file.value);
 
-    const response = await fetch("http://localhost:8080/analyze-image", {
+    const response = await fetch(`${import.meta.env.VITE_API_URL}/analyze-image`, {
       method: "POST",
       credentials: "include",
       body: formData,
@@ -183,7 +183,7 @@ async function analyzeImage() {
 }
 
 async function logout() {
-  await fetch("http://localhost:8080/logout", {
+  await fetch(`${import.meta.env.VITE_API_URL}/logout`, {
     method: "POST",
     credentials: "include",
   });
