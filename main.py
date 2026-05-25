@@ -10,11 +10,11 @@ from services.auth_service import (
     verify_token,
 )
 
-app = FastAPI()
+app = FastAPI(root_path="/api")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://frontend:80"],
+    allow_origins=["https://essiantola.com"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -58,7 +58,7 @@ async def github_callback(code: str, state: str):
     if not token:
         raise HTTPException(status_code=400, detail="Failed to get token")
 
-    redirect = RedirectResponse(url="http://localhost:5173/analyze")
+    redirect = RedirectResponse(url="https://essiantola.com/food-macro/analyze")
     redirect.set_cookie(
         key="access_token",
         value=token,

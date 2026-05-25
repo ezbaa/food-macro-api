@@ -15,7 +15,7 @@ def get_github_login_url() -> str:
     return (
         f"https://github.com/login/oauth/authorize"
         f"?client_id={GITHUB_CLIENT_ID}"
-        f"&redirect_uri=http://localhost:8080/callback"
+        f"&redirect_uri=https://essiantola.com/api/callback"
         f"&scope=read:user"
         f"&state={state}"
     )
@@ -36,7 +36,7 @@ async def exchange_code_for_token(code: str):
                 "client_id": GITHUB_CLIENT_ID,
                 "client_secret": GITHUB_CLIENT_SECRET,
                 "code": code,
-                "redirect_uri": "http://localhost:8080/callback",
+                "redirect_uri": "https://essiantola.com/api/callback"
             },
             headers={"Accept": "application/json"},
         )
