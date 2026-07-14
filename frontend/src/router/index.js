@@ -12,7 +12,7 @@ const router = createRouter({
     {
       path: '/analyze',
       component: AnalyzeView,
-    },    
+    },
   ],
 })
 

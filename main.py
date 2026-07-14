@@ -1,14 +1,16 @@
-from fastapi import FastAPI, UploadFile, File, HTTPException, Cookie, Response
-from fastapi.responses import RedirectResponse
-from fastapi.middleware.cors import CORSMiddleware
 import base64
-from services.vision_service import analyze_image
+
+from fastapi import Cookie, FastAPI, File, HTTPException, Response, UploadFile
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import RedirectResponse
+
 from services.auth_service import (
     exchange_code_for_token,
     get_github_login_url,
     verify_state,
     verify_token,
 )
+from services.vision_service import analyze_image
 
 app = FastAPI(root_path="/api")
 
@@ -32,11 +34,12 @@ async def analyze_image_endpoint(
     try:
         await verify_token(access_token)
     except Exception as e:
-        raise HTTPException(status_code=401, detail=str(e))
+        raise HTTPException(status_code=401, detail=str(e)) from e
 
     contents = await file.read()
     print(
-        f"Filename: {file.filename}, Content-type: {file.content_type}, Size: {len(contents)} bytes"
+        f"Filename: {file.filename}, Content-type: {file.content_type}, "
+        f"Size: {len(contents)} bytes"
     )
     encoded = base64.b64encode(contents).decode("utf-8")
     result = analyze_image(encoded)
@@ -83,7 +86,7 @@ async def me(access_token: str = Cookie(None)):
         user = await verify_token(access_token)
         return {"username": user.get("login")}
     except Exception as e:
-        raise HTTPException(status_code=401, detail=str(e))
+        raise HTTPException(status_code=401, detail=str(e)) from e
 
 
 @app.post("/logout")

@@ -1,6 +1,7 @@
 import os
-import httpx
 import secrets
+
+import httpx
 
 GITHUB_CLIENT_ID = os.getenv("GITHUB_CLIENT_ID")
 GITHUB_CLIENT_SECRET = os.getenv("GITHUB_CLIENT_SECRET")
@@ -36,7 +37,7 @@ async def exchange_code_for_token(code: str):
                 "client_id": GITHUB_CLIENT_ID,
                 "client_secret": GITHUB_CLIENT_SECRET,
                 "code": code,
-                "redirect_uri": "https://essiantola.com/api/callback"
+                "redirect_uri": "https://essiantola.com/api/callback",
             },
             headers={"Accept": "application/json"},
         )
