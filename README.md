@@ -1,73 +1,158 @@
-# 🍽️ Food Macro Vision API
+# 🍽️ Food Macro
 
-A REST API that analyzes food images and returns nutritional estimates using Groq's vision-enabled LLM (Llama 4 Scout). Upload a photo of any meal and get back macro breakdown, ingredient list, and dish classification.
+A full-stack web app that estimates the nutritional content of a meal from a photo.
+Upload a picture of your food and get back a macro breakdown (calories, protein,
+carbs, sugar, fat, fiber), an ingredient list, and a dish classification — powered
+by Groq's vision-enabled LLM (Llama 4 Scout).
 
-## Features
+Access is gated behind GitHub OAuth with a user allowlist, so it runs as a private,
+invite-only app.
 
-- Identifies the dish and provides a short description
-- Estimates macros: calories, protein, carbohydrates, sugar, fat, and fiber
-- Classifies food origin: restaurant, home-cooked or unknown
-- Returns a confidence score. Low-confidence results are rejected automatically
+## Architecture
+
+```
+Browser ──> Vue 3 SPA (nginx) ──> FastAPI backend ──> Groq Vision API
+                                        │
+                                        └──> GitHub OAuth (login + allowlist)
+```
+
+- **Frontend** — Vue 3 + Vite single-page app, served by nginx in production.
+- **Backend** — FastAPI, mounted under `/api`, talking to Groq for inference.
+- **Auth** — GitHub OAuth; the access token is stored in an httponly cookie and
+  re-verified on each request against an `ALLOWED_USERS` allowlist.
 
 ## Tech Stack
 
-- **FastAPI** — REST API framework
-- **Groq** — AI inference (Llama 4 Scout vision model)
-- **Uvicorn** — ASGI server
-- **Python 3.10+**
+| Layer     | Tech                                             |
+| --------- | ------------------------------------------------ |
+| Frontend  | Vue 3, Vue Router, Vite                          |
+| Backend   | FastAPI, Uvicorn, Python 3.11                    |
+| AI        | Groq — `meta-llama/llama-4-scout-17b` (vision)   |
+| Auth      | GitHub OAuth                                      |
+| Deploy    | Docker + Docker Compose (nginx for the frontend) |
+| Tooling   | Ruff (Python), Prettier + ESLint (frontend)      |
+
+## Project Structure
+
+```
+.
+├── main.py                 # FastAPI app + routes
+├── services/
+│   ├── vision_service.py   # Groq image analysis
+│   └── auth_service.py     # GitHub OAuth + allowlist
+├── frontend/               # Vue 3 SPA
+│   └── src/views/          # Home (login) + Analyze (upload/results)
+├── docker-compose.yml      # backend + frontend
+└── requirements.txt
+```
 
 ## Getting Started
 
-### 1. Clone the repository
+### Prerequisites
 
-```bash
-git clone https://github.com/ezbaa/food-macro-api.git
-cd food-macro-api
+- Python 3.11+
+- Node.js 20.19+ or 22.12+
+- A [Groq API key](https://console.groq.com/keys) (free)
+- A [GitHub OAuth App](https://github.com/settings/developers) (Client ID + Secret)
+
+### Configuration
+
+Create a `.env` in the project root for the backend:
+
+```env
+GROQ_API_KEY=your_groq_api_key
+GITHUB_CLIENT_ID=your_github_client_id
+GITHUB_CLIENT_SECRET=your_github_client_secret
+ALLOWED_USERS=your_github_username,another_username
 ```
 
-### 2. Create and activate a virtual environment
+The frontend reads its API base URL from `frontend/.env`:
+
+```env
+VITE_API_URL=http://localhost:8080
+```
+
+> **Note:** the GitHub OAuth callback and CORS origin are currently hardcoded to the
+> deployed domain, so the **login flow does not work locally yet**. Making these URLs
+> environment-driven (so local login works) is tracked in the roadmap below.
+
+### Run the backend
 
 ```bash
 python -m venv venv
-```
-
-**macOS / Linux:**
-```bash
-source venv/bin/activate
-```
-
-**Windows:**
-```bash
-venv\Scripts\activate
-```
-
-### 3. Install dependencies
-
-```bash
+source venv/bin/activate          # Windows: venv\Scripts\activate
 pip install -r requirements.txt
+uvicorn main:app --reload --port 8080
 ```
 
-### 4. Set up environment variables
+Interactive API docs: http://localhost:8080/docs
 
-Create a `.env` file in the project root:
-
-```env
-GROQ_API_KEY=your_groq_api_key_here
-```
-
-You can get a free Groq API key at [console.groq.com](https://console.groq.com/keys).
-
-### 5. Run the server
+### Run the frontend
 
 ```bash
-uvicorn main:app --reload
+cd frontend
+npm install
+npm run dev
 ```
 
-The API will be available at `http://localhost:8000`.
+App: http://localhost:5173/food-macro/
+
+### Or run everything with Docker
+
+```bash
+docker compose up --build
+```
+
+Frontend on `:5173`, backend on `:8080`.
 
 ## API Reference
 
-Once the server is running, open the interactive API docs in your browser: [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
+All routes are served under the `/api` prefix.
 
-From there you can try out the `/analyze-image` endpoint directly by uploading an image file.
+| Method | Endpoint         | Auth | Description                               |
+| ------ | ---------------- | ---- | ----------------------------------------- |
+| POST   | `/analyze-image` | ✅   | Upload an image, get macro estimates back |
+| GET    | `/login`         | —    | Redirect to GitHub OAuth                  |
+| GET    | `/callback`      | —    | OAuth callback; sets the session cookie   |
+| GET    | `/me`            | ✅   | Return the logged-in user's username      |
+| POST   | `/logout`        | ✅   | Clear the session cookie                  |
 
+### `POST /analyze-image` response
+
+```json
+{
+  "filename": "lunch.jpg",
+  "analysis": {
+    "success": true,
+    "error": null,
+    "data": {
+      "title": "Chicken and rice",
+      "dish_type": "homemade",
+      "confidence": 0.85,
+      "summary": "...",
+      "ingredients": ["chicken", "rice"],
+      "estimated_macros": {
+        "calories": 520, "protein_g": 40, "carbs_g": 55,
+        "sugar_g": 6, "fat_g": 14, "fiber_g": 3
+      }
+    }
+  }
+}
+```
+
+## Development
+
+Formatting and linting are enforced via a pre-commit hook:
+
+```bash
+pip install pre-commit && pre-commit install   # one-time setup
+```
+
+- **Python** — `ruff format .` and `ruff check --fix .`
+- **Frontend** — `npm run format` (Prettier) and `npm run lint` (ESLint)
+
+## Roadmap
+
+- [ ] Persist analyses to Postgres for meal history and daily macro totals
+- [ ] Make OAuth callback / CORS / redirect URLs environment-driven so login works
+      in local development (currently hardcoded to the production domain)
