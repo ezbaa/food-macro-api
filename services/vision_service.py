@@ -20,7 +20,10 @@ client = get_client()
 def analyze_image(encoded_image: str):
     try:
         response = client.chat.completions.create(
-            model="meta-llama/llama-4-scout-17b-16e-instruct",
+            model="qwen/qwen3.6-27b",
+            response_format={"type": "json_object"},
+            reasoning_effort="none",
+            max_completion_tokens=1024,
             messages=[
                 {
                     "role": "user",
