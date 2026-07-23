@@ -32,7 +32,7 @@
           </div>
 
           <button class="analyze-btn" @click="analyzeImage" :disabled="loading">
-            {{ loading ? "Analyzing..." : "Analyze" }}
+            {{ loading ? 'Analyzing...' : 'Analyze' }}
           </button>
         </div>
 
@@ -43,9 +43,7 @@
               <p class="summary">{{ result.analysis.data.summary }}</p>
               <div class="badges">
                 <span class="badge">{{ result.analysis.data.dish_type }}</span>
-                <span class="badge"
-                  >{{ result.analysis.data.confidence * 100 }}% confidence</span
-                >
+                <span class="badge">{{ result.analysis.data.confidence * 100 }}% confidence</span>
               </div>
             </div>
 
@@ -66,16 +64,14 @@
               <h3>Macros</h3>
               <div class="macros">
                 <div class="macro">
-                  <span class="macro-value">{{
-                    result.analysis.data.estimated_macros.calories
-                  }}</span>
+                  <span class="macro-value">
+                    {{ result.analysis.data.estimated_macros.calories }}</span
+                  >
                   <span class="macro-label">kcal</span>
                 </div>
                 <div class="macro">
                   <span class="macro-value"
-                    >{{
-                      result.analysis.data.estimated_macros.protein_g
-                    }}g</span
+                    >{{ result.analysis.data.estimated_macros.protein_g }}g</span
                   >
                   <span class="macro-label">Protein</span>
                 </div>
@@ -117,77 +113,78 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
-import { useRouter } from "vue-router";
+import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 
-const router = useRouter();
-const user = ref(null);
-const file = ref(null);
-const result = ref(null);
-const loading = ref(false);
-const error = ref(null);
+const router = useRouter()
+const user = ref(null)
+const file = ref(null)
+const result = ref(null)
+const loading = ref(false)
+const error = ref(null)
 
 onMounted(async () => {
   try {
     const response = await fetch(`${import.meta.env.VITE_API_URL}/me`, {
-      credentials: "include",
-    });
+      credentials: 'include',
+    })
     if (!response.ok) {
-      router.push("/");
-      return;
+      router.push('/')
+      return
     }
-    const data = await response.json();
-    user.value = data.username;
+    const data = await response.json()
+    user.value = data.username
   } catch {
-    router.push("/");
+    router.push('/')
   }
-});
+})
 
 function onFileSelect(event) {
-  file.value = event.target.files[0];
+  file.value = event.target.files[0]
 }
 
 async function analyzeImage() {
   if (!file.value) {
-    error.value = "Upload image";
-    return;
+    error.value = 'Upload image'
+    return
   }
 
-  result.value = null;
+  result.value = null
 
-  loading.value = true;
-  error.value = null;
+  loading.value = true
+  error.value = null
+
   try {
-    const formData = new FormData();
-    formData.append("file", file.value);
+    const formData = new FormData()
+    formData.append('file', file.value)
 
     const response = await fetch(`${import.meta.env.VITE_API_URL}/analyze-image`, {
-      method: "POST",
-      credentials: "include",
+      method: 'POST',
+      credentials: 'include',
       body: formData,
-    });
+    })
 
     if (!response.ok) {
-      const data = await response.json();
-      error.value = data.detail;
-      return;
+      const data = await response.json()
+      error.value = data.detail
+      return
     }
-    const data = await response.json();
-    console.log(data);
-    result.value = data;
+    const data = await response.json()
+    console.log(data)
+    result.value = data
   } catch {
-    error.value = "Something went wrong";
+    error.value = 'Something went wrong'
   } finally {
-    loading.value = false;
+    loading.value = false
   }
 }
 
 async function logout() {
   await fetch(`${import.meta.env.VITE_API_URL}/logout`, {
-    method: "POST",
-    credentials: "include",
-  });
-  router.push("/");
+    method: 'POST',
+    credentials: 'include',
+  })
+  router.push('/')
 }
 </script>
 
@@ -257,7 +254,7 @@ main {
   line-height: 1.5;
 }
 
-input[type="file"] {
+input[type='file'] {
   background: #f7faf5;
   padding: 12px 16px;
   border-radius: 10px;

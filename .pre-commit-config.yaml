@@ -1,0 +1,25 @@
+# Runs on every `git commit`. Install once with: pre-commit install
+repos:
+  # Python: Ruff lint + format (uses config in pyproject.toml)
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.15.10
+    hooks:
+      - id: ruff-check
+        args: [--fix]
+      - id: ruff-format
+
+  # Frontend: Prettier + ESLint via the project's own npm setup
+  - repo: local
+    hooks:
+      - id: prettier
+        name: prettier (frontend)
+        entry: bash -c 'cd frontend && npm run format'
+        language: system
+        files: ^frontend/src/.*\.(vue|js|jsx|css|html)$
+        pass_filenames: false
+      - id: eslint
+        name: eslint (frontend)
+        entry: bash -c 'cd frontend && npm run lint'
+        language: system
+        files: ^frontend/src/.*\.(vue|js|jsx)$
+        pass_filenames: false

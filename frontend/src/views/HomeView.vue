@@ -3,24 +3,21 @@
     <div class="card">
       <h1>Food Macro API</h1>
 
-      <p class="subtitle">
-        Analyze your meal and get instant nutritional insights powered by AI.
-      </p>
+      <p class="subtitle">Analyze your meal and get instant nutritional insights powered by AI.</p>
 
       <div class="divider"></div>
 
-      <p class="hint">
-        Sign in with GitHub to start analyzing your food photos.
-      </p>
+      <p class="hint">Sign in with GitHub to start analyzing your food photos.</p>
 
       <button class="login-btn" @click="login">Login with GitHub</button>
+      <p class="whitelist">Whitelisted access</p>
     </div>
   </div>
 </template>
 
 <script setup>
 function login() {
-  window.location.href = `${import.meta.env.VITE_API_URL}/login`;
+  window.location.href = `${import.meta.env.VITE_API_URL}/login`
 }
 </script>
 
@@ -66,6 +63,11 @@ h1 {
 
 .hint {
   color: #7a8a7a;
+  font-size: 0.85rem;
+  margin-bottom: 24px;
+}
+.whitelist {
+  color: #585b58;
   font-size: 0.85rem;
   margin-bottom: 24px;
 }

@@ -1,7 +1,8 @@
-import os
-from groq import Groq
-from dotenv import load_dotenv
 import json
+import os
+
+from dotenv import load_dotenv
+from groq import Groq
 
 load_dotenv()
 
@@ -74,7 +75,7 @@ def analyze_image(encoded_image: str):
             "summary": "short description of the meal",
             "ingredients": ["ingredient1", "ingredient2", "ingredient3"],
             "estimated_macros": {
-                "calories": number,ß
+                "calories": number,
                 "fat_g": number,
                 "carbs_g": number,
                 "sugar_g": number,
