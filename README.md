@@ -3,7 +3,7 @@
 A full-stack web app that estimates the nutritional content of a meal from a photo.
 Upload a picture of your food and get back a macro breakdown (calories, protein,
 carbs, sugar, fat, fiber), an ingredient list, and a dish classification — powered
-by Groq's vision-enabled LLM (Llama 4 Scout).
+by Groq's vision-enabled LLM (qwen/qwen3.6-27b).
 
 Access is gated behind GitHub OAuth with a user allowlist, so it runs as a private,
 invite-only app.
@@ -27,7 +27,7 @@ Browser ──> Vue 3 SPA (nginx) ──> FastAPI backend ──> Groq Vision AP
 | --------- | ------------------------------------------------ |
 | Frontend  | Vue 3, Vue Router, Vite                          |
 | Backend   | FastAPI, Uvicorn, Python 3.11                    |
-| AI        | Groq — `meta-llama/llama-4-scout-17b` (vision)   |
+| AI        | Groq — `qwen/qwen3.6-27b` (vision)   |
 | Auth      | GitHub OAuth                                      |
 | Deploy    | Docker + Docker Compose (nginx for the frontend) |
 | Tooling   | Ruff (Python), Prettier + ESLint (frontend)      |
@@ -42,6 +42,8 @@ Browser ──> Vue 3 SPA (nginx) ──> FastAPI backend ──> Groq Vision AP
 │   └── auth_service.py     # GitHub OAuth + allowlist
 ├── frontend/               # Vue 3 SPA
 │   └── src/views/          # Home (login) + Analyze (upload/results)
+├── scripts/
+│   └── check_vision.py     # dev tool: smoke-test the Groq vision pipeline
 ├── docker-compose.yml      # backend + frontend
 └── requirements.txt
 ```
@@ -150,6 +152,16 @@ pip install pre-commit && pre-commit install   # one-time setup
 
 - **Python** — `ruff format .` and `ruff check --fix .`
 - **Frontend** — `npm run format` (Prettier) and `npm run lint` (ESLint)
+
+### Checking the vision pipeline
+
+After changing the vision model or the prompt, sanity-check that image analysis
+still works with a live Groq call (not an automated test — it costs tokens):
+
+```bash
+venv/bin/python scripts/check_vision.py                  # list available models
+venv/bin/python scripts/check_vision.py path/to/food.jpg # run the real pipeline
+```
 
 ## Roadmap
 
