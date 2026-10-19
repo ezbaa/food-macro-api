@@ -11,7 +11,11 @@ invite-only app.
 
 ## Demo
 
-https://github.com/user-attachments/assets/4aa8606a-d3dc-45c6-a348-b047baf3e3a9
+
+
+https://github.com/user-attachments/assets/da3a9755-ae9c-4ed5-81db-36cb9a819773
+
+
 
 ## Architecture
 
