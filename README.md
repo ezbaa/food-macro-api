@@ -3,10 +3,14 @@
 A full-stack web app that estimates the nutritional content of a meal from a photo.
 Upload a picture of your food and get back a macro breakdown (calories, protein,
 carbs, sugar, fat, fiber), an ingredient list, and a dish classification — powered
-by Groq's vision-enabled LLM (qwen/qwen3.6-27b).
+by Groq's vision-enabled LLM (`qwen/qwen3.8-27b`).
 
 Access is gated behind GitHub OAuth with a user allowlist, so it runs as a private,
 invite-only app.
+
+## Demo
+
+_Demo video coming soon._
 
 ## Architecture
 
@@ -27,9 +31,9 @@ Browser ──> Vue 3 SPA (nginx) ──> FastAPI backend ──> Groq Vision AP
 | --------- | ------------------------------------------------ |
 | Frontend  | Vue 3, Vue Router, Vite                          |
 | Backend   | FastAPI, Uvicorn, Python 3.11                    |
-| AI        | Groq — `qwen/qwen3.6-27b` (vision)   |
-| Auth      | GitHub OAuth                                      |
-| Deploy    | Docker + Docker Compose (nginx for the frontend) |
+| AI        | Groq — `qwen/qwen3.8-27b` (vision)               |
+| Auth      | GitHub OAuth                                     |
+| Deploy    | Docker, Kubernetes, Flux (GitOps), Sealed Secrets |
 | Tooling   | Ruff (Python), Prettier + ESLint (frontend)      |
 
 ## Project Structure
@@ -55,7 +59,9 @@ Browser ──> Vue 3 SPA (nginx) ──> FastAPI backend ──> Groq Vision AP
 - Python 3.11+
 - Node.js 20.19+ or 22.12+
 - A [Groq API key](https://console.groq.com/keys) (free)
-- A [GitHub OAuth App](https://github.com/settings/developers) (Client ID + Secret)
+- A [GitHub OAuth App](https://github.com/settings/developers) for local development,
+  with the callback URL set to `http://localhost:8080/callback`. Use a separate app
+  from production: an OAuth App only accepts its one registered callback URL.
 
 ### Configuration
 
@@ -63,20 +69,24 @@ Create a `.env` in the project root for the backend:
 
 ```env
 GROQ_API_KEY=your_groq_api_key
-GITHUB_CLIENT_ID=your_github_client_id
-GITHUB_CLIENT_SECRET=your_github_client_secret
+GITHUB_CLIENT_ID=your_dev_oauth_client_id
+GITHUB_CLIENT_SECRET=your_dev_oauth_client_secret
 ALLOWED_USERS=your_github_username,another_username
+OAUTH_REDIRECT_URI=http://localhost:8080/callback
+FRONTEND_URL=http://localhost:5173/food-macro
+CORS_ORIGINS=http://localhost:5173
 ```
 
-The frontend reads its API base URL from `frontend/.env`:
+The backend refuses to start if any of these are missing.
 
-```env
-VITE_API_URL=http://localhost:8080
-```
+The frontend reads its API base URL from a Vite env file per mode:
 
-> **Note:** the GitHub OAuth callback and CORS origin are currently hardcoded to the
-> deployed domain, so the **login flow does not work locally yet**. Making these URLs
-> environment-driven (so local login works) is tracked in the roadmap below.
+| File                        | Used by         | Value                       |
+| --------------------------- | --------------- | --------------------------- |
+| `frontend/.env.development` | `npm run dev`   | `VITE_API_URL=http://localhost:8080` |
+| `frontend/.env.production`  | `npm run build` | your production API URL     |
+
+`VITE_API_URL` is baked into the bundle at build time.
 
 ### Run the backend
 
@@ -97,15 +107,33 @@ npm install
 npm run dev
 ```
 
-App: http://localhost:5173/food-macro/
+App: http://localhost:5173/food-macro/ (the dev server is pinned to port 5173 to
+match `FRONTEND_URL` and `CORS_ORIGINS`).
 
-### Or run everything with Docker
+### Production build with Docker
 
 ```bash
 docker compose up --build
 ```
 
-Frontend on `:5173`, backend on `:8080`.
+Frontend on `:5173`, backend on `:8080`. The frontend image is a production build,
+so it uses `frontend/.env.production`. Use the dev servers above for local login.
+
+## Deployment
+
+Production runs on Kubernetes and is deployed through GitOps: Flux syncs the
+cluster from a separate config repo. Secrets are stored there as Sealed Secrets,
+and the backend's non-secret config (URLs, CORS) is set as plain environment
+variables in the deployment manifest.
+
+## Security
+
+- GitHub OAuth login with `state` validation and a minimal `read:user` scope
+- Access limited to an allowlist of GitHub users
+- Session cookie is `HttpOnly` and `SameSite=Strict`
+- CORS restricted to the app's own origin
+- No secrets in the repo: `.env` is gitignored, production uses Sealed Secrets
+- HTTPS enforced with HSTS
 
 ## API Reference
 
@@ -117,7 +145,7 @@ All routes are served under the `/api` prefix.
 | GET    | `/login`         | —    | Redirect to GitHub OAuth                  |
 | GET    | `/callback`      | —    | OAuth callback; sets the session cookie   |
 | GET    | `/me`            | ✅   | Return the logged-in user's username      |
-| POST   | `/logout`        | ✅   | Clear the session cookie                  |
+| POST   | `/logout`        | —    | Clear the session cookie                  |
 
 ### `POST /analyze-image` response
 
@@ -166,5 +194,5 @@ venv/bin/python scripts/check_vision.py path/to/food.jpg # run the real pipeline
 ## Roadmap
 
 - [ ] Persist analyses to Postgres for meal history and daily macro totals
-- [ ] Make OAuth callback / CORS / redirect URLs environment-driven so login works
-      in local development (currently hardcoded to the production domain)
+- [x] Make OAuth callback / CORS / redirect URLs environment-driven so login works
+      in local development
