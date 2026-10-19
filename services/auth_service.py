@@ -39,7 +39,7 @@ async def exchange_code_for_token(code: str):
                 "client_id": GITHUB_CLIENT_ID,
                 "client_secret": GITHUB_CLIENT_SECRET,
                 "code": code,
-                "redirect_uri": "{OAUTH_REDIRECT_URI}",
+                "redirect_uri": OAUTH_REDIRECT_URI,
             },
             headers={"Accept": "application/json"},
         )
