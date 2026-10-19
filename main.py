@@ -1,16 +1,19 @@
 import base64
 
+from dotenv import load_dotenv
 from fastapi import Cookie, FastAPI, File, HTTPException, Response, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
 
-from services.auth_service import (
+load_dotenv()
+
+from services.auth_service import (  # noqa: E402
     exchange_code_for_token,
     get_github_login_url,
     verify_state,
     verify_token,
 )
-from services.vision_service import analyze_image
+from services.vision_service import analyze_image  # noqa: E402
 
 app = FastAPI(root_path="/api")
 
