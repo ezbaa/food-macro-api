@@ -1,4 +1,5 @@
 import base64
+import os
 
 from dotenv import load_dotenv
 from fastapi import Cookie, FastAPI, File, HTTPException, Response, UploadFile
@@ -19,7 +20,7 @@ app = FastAPI(root_path="/api")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://essiantola.com"],
+    allow_origins=os.getenv("CORS_ORIGINS", "").split(","),
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -64,7 +65,7 @@ async def github_callback(code: str, state: str):
     if not token:
         raise HTTPException(status_code=400, detail="Failed to get token")
 
-    redirect = RedirectResponse(url="https://essiantola.com/food-macro/analyze")
+    redirect = RedirectResponse(url=f"{os.getenv('FRONTEND_URL')}/analyze")
     redirect.set_cookie(
         key="access_token",
         value=token,

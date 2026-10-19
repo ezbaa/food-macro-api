@@ -6,6 +6,8 @@ import httpx
 GITHUB_CLIENT_ID = os.getenv("GITHUB_CLIENT_ID")
 GITHUB_CLIENT_SECRET = os.getenv("GITHUB_CLIENT_SECRET")
 ALLOWED_USERS = os.getenv("ALLOWED_USERS", "").split(",")
+OAUTH_REDIRECT_URI = os.getenv("OAUTH_REDIRECT_URI")
+
 
 valid_states = set()
 
@@ -16,7 +18,7 @@ def get_github_login_url() -> str:
     return (
         f"https://github.com/login/oauth/authorize"
         f"?client_id={GITHUB_CLIENT_ID}"
-        f"&redirect_uri=https://essiantola.com/api/callback"
+        f"&redirect_uri={OAUTH_REDIRECT_URI}"
         f"&scope=read:user"
         f"&state={state}"
     )
@@ -37,7 +39,7 @@ async def exchange_code_for_token(code: str):
                 "client_id": GITHUB_CLIENT_ID,
                 "client_secret": GITHUB_CLIENT_SECRET,
                 "code": code,
-                "redirect_uri": "https://essiantola.com/api/callback",
+                "redirect_uri": "{OAUTH_REDIRECT_URI}",
             },
             headers={"Accept": "application/json"},
         )
