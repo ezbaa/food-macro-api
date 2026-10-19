@@ -1,3 +1,4 @@
+
 # 🍽️ Food Macro
 
 A full-stack web app that estimates the nutritional content of a meal from a photo.
@@ -10,7 +11,7 @@ invite-only app.
 
 ## Demo
 
-_Demo video coming soon._
+https://github.com/user-attachments/assets/4aa8606a-d3dc-45c6-a348-b047baf3e3a9
 
 ## Architecture
 
