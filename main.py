@@ -8,6 +8,19 @@ from fastapi.responses import RedirectResponse
 
 load_dotenv()
 
+REQUIRED_ENV_VARS = [
+    "GROQ_API_KEY",
+    "GITHUB_CLIENT_ID",
+    "GITHUB_CLIENT_SECRET",
+    "ALLOWED_USERS",
+    "OAUTH_REDIRECT_URI",
+    "FRONTEND_URL",
+    "CORS_ORIGINS",
+]
+missing = [name for name in REQUIRED_ENV_VARS if not os.getenv(name)]
+if missing:
+    raise RuntimeError(f"Missing required env vars: {', '.join(missing)}")
+
 from services.auth_service import (  # noqa: E402
     exchange_code_for_token,
     get_github_login_url,
